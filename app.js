@@ -51,5 +51,13 @@ $("result").innerHTML=`<div class="block yellow"><h3>Status Root Cause</h3>${sta
 }
 $("start").onclick=()=>{reset();$("chat").innerHTML="";let p=$("problem").value.trim();msg(p,true);parse(p);$("qbox").hidden=false;render();ask()};
 $("send").onclick=()=>{let a=$("answer").value.trim();if(a)submit(a)};
-$("answer").onkeydown=e=>{if(e.key==="Enter")$("send").click()};reset();
+$("answer").onkeydown=e=>{if(e.key==="Enter")$("send").click()};
+$("resetDemo").onclick=()=>{
+  reset();
+  $("chat").innerHTML="Noch kein Fall gestartet.";
+  $("qbox").hidden=true;
+  $("problem").value="Wassereintritt in den Fahrzeuginnenraum. Undichtigkeit an der Tür.";
+  $("result").innerHTML="<p>Noch keine Diagnose.</p>";
+};
+reset();
 })();

@@ -5,3 +5,16 @@
 #qbox{flex:0 0 auto;border-top:1px solid #294a6d;padding-top:10px;background:#101d2f}
 .result #result{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:6px;scrollbar-gutter:stable}
 @media(max-width:1000px){.card{height:70vh;min-height:500px}}
+
+/* LinkedIn Demo 16:9 cockpit */
+html,body{height:100%}
+body{overflow:hidden}
+main{height:100vh;max-width:1920px;padding:14px 18px;display:flex;flex-direction:column}
+header{flex:0 0 auto;margin-bottom:10px}
+header h1{font-size:34px}
+.grid{flex:1 1 auto;min-height:0;grid-template-columns:.72fr 1.18fr 1.10fr}
+.card{height:100%;min-height:0}
+.demoBadge{margin:12px 0 4px;padding:8px 10px;border-radius:8px;background:#132a40;border:1px solid #3e6b91;font-size:12px;font-weight:800;letter-spacing:.6px}
+.secondary{background:#172b44;color:#eef6ff;border:1px solid #41688f}
+.result h2,.card h2{margin-top:0}
+@media(max-width:1100px){body{overflow:auto}.grid{grid-template-columns:1fr}.card{height:650px}}

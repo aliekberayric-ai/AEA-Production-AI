@@ -41,8 +41,8 @@ let whytext=why&&why!=="Noch unbekannt"?"Aktueller Warum-Hinweis: <b>"+why+"</b>
 let permanent=why&&why!=="Noch unbekannt"?"Dauermaßnahme auf die bestätigte Warum-Ursache ausrichten; nicht pauschal den Mitarbeiter verantwortlich machen. Prozess anschließend standardisieren und absichern.":"Dauermaßnahme erst nach Bestätigung der Warum-Ursache festlegen.";
 let proof=conf?"Nacharbeit beseitigt den Fehler im Wiederholtest. Zusammenhang ist stark bestätigt. Für endgültige Absicherung mehrere betroffene und Referenzfahrzeuge prüfen.":"Gezielter Nachweis: betroffene Verklebung korrekt nacharbeiten → erneuter Wassertest → Ergebnis dokumentieren. Idealerweise an mehreren Fahrzeugen bestätigen.";
 let status=conf?"🟢 Ursache stark bestätigt":ev&&loc?"🟡 Starker Verdacht / Nachweis erforderlich":"🟠 Ursache offen";
-$("result").innerHTML=`<div class="block yellow"><h3>Status Root Cause</h3>${status}</div>
-<div class="block blue"><h3>Arbeitsdiagnose</h3>${diagnosis}</div>
+$("resultStatus").innerHTML=`<div class="block yellow"><h3>Status Root Cause</h3>${status}</div>`;
+$("result").innerHTML=`<div class="block blue"><h3>Arbeitsdiagnose</h3>${diagnosis}</div>
 <div class="block red"><h3>Sofortmaßnahme / Containment</h3>${immediate}</div>
 <div class="block yellow"><h3>Warum-Ursache prüfen</h3>${whytext}</div>
 <div class="block blue"><h3>Dauermaßnahme</h3>${permanent}</div>
@@ -57,6 +57,7 @@ $("resetDemo").onclick=()=>{
   $("chat").innerHTML="Noch kein Fall gestartet.";
   $("qbox").hidden=true;
   $("problem").value="Wassereintritt in den Fahrzeuginnenraum. Undichtigkeit an der Tür.";
+  $("resultStatus").innerHTML='<div class="block yellow"><h3>Status Root Cause</h3>🟠 Ursache offen</div>';
   $("result").innerHTML="<p>Noch keine Diagnose.</p>";
 };
 reset();

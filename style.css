@@ -19,12 +19,11 @@ header h1{font-size:34px}
 .result h2,.card h2{margin-top:0}
 @media(max-width:1100px){body{overflow:auto}.grid{grid-template-columns:1fr}.card{height:650px}}
 
-/* LinkedIn Demo v1.1 – Root Cause Status bleibt beim Scrollen sichtbar */
-.result #result{position:relative;}
-.result #result > .block.yellow:first-child{
-  position:sticky;
-  top:0;
-  z-index:30;
-  margin-top:0;
-  box-shadow:0 8px 16px rgba(0,0,0,.38);
-}
+
+/* LinkedIn Demo v1.2 – Root-Cause-Status physically outside the scroll area */
+.result{overflow:hidden;}
+#resultStatus{flex:0 0 auto;position:relative;z-index:40;background:#101d2f;}
+#resultStatus .block{margin:0 0 10px 0;box-shadow:0 8px 16px rgba(0,0,0,.32);}
+#resultScroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:6px;scrollbar-gutter:stable;}
+#result{overflow:visible!important;min-height:auto!important;padding-right:0!important;}
+#result .block:first-child{margin-top:0;}

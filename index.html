@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEA Production AI v0.5</title>
+<style>
+:root{
+ --bg:#07111d;--panel:#101d2e;--panel2:#14253a;--line:#29425f;
+ --text:#eef5ff;--muted:#9db1c8;--accent:#5ba9ff;--ok:#37c993;
+ --warn:#ffbd59;--bad:#ff7076;--violet:#a98cff;--soft:#182a40;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:
+radial-gradient(circle at 15% 0%,#183354 0,#09131f 40%,#050b12 100%);color:var(--text)}
+.wrap{max-width:1650px;margin:auto;padding:20px}
+header{display:flex;justify-content:space-between;gap:18px;align-items:flex-end;margin-bottom:16px}
+h1{margin:0;font-size:clamp(28px,4vw,46px)}
+.sub{color:var(--muted);margin-top:5px}
+.badge{padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#0d1928;color:#cee1f7;font-size:12px}
+.layout{display:grid;grid-template-columns:0.95fr 1.25fr 1.1fr;gap:15px}
+.card{background:rgba(16,29,46,.97);border:1px solid var(--line);border-radius:18px;padding:17px;box-shadow:0 12px 35px rgba(0,0,0,.23)}
+.card h2{margin:0 0 13px;font-size:18px}
+label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}
+textarea,input,select{width:100%;background:#0a1624;color:var(--text);border:1px solid var(--line);border-radius:11px;padding:11px 12px;outline:none}
+textarea{min-height:115px;resize:vertical}
+textarea:focus,input:focus,select:focus{border-color:var(--accent)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.field{margin-bottom:11px}
+button{border:0;border-radius:11px;padding:11px 14px;font-weight:750;cursor:pointer}
+.primary{background:var(--accent);color:#06111c;width:100%}
+.secondary{background:#203955;color:var(--text)}
+.ghost{background:#13243a;border:1px solid var(--line);color:var(--text)}
+.danger{background:#48242b;color:#ffd7d7}
+.box{background:#0a1522;border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.title{font-weight:760;margin-bottom:7px;display:block}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+.chat{display:flex;flex-direction:column;gap:8px;max-height:460px;overflow:auto;padding-right:3px}
+.msg{padding:10px 12px;border-radius:12px;line-height:1.45;font-size:14px}
+.ai{background:#0e2135;border:1px solid #28527c}
+.user{background:#1b2e47;border:1px solid #35597f;margin-left:12%}
+.question{background:#0d1b2b;border:1px solid #34577d;border-radius:13px;padding:12px;margin-top:10px}
+.answerbar{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:9px}
+.quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.quick button{padding:7px 9px;font-size:12px;background:#172a42;color:#dcecff;border:1px solid #315272}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.kpi>div{background:#0a1522;border:1px solid var(--line);border-radius:11px;padding:10px}
+.kpi b{font-size:18px;display:block;margin-top:3px}
+.mrow{padding:10px;border-radius:11px;background:#0b1725;border:1px solid var(--line);margin-bottom:8px}
+.mhead{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.state{font-size:11px;padding:4px 7px;border-radius:999px}
+.up{background:#173b2f;color:#bdf5dc}.down{background:#3c262a;color:#ffb8bd}.open{background:#3f3018;color:#ffdb9b}.proof{background:#1b3458;color:#c7e5ff}
+.bar{height:8px;background:#09111c;border-radius:99px;overflow:hidden;margin-top:7px}
+.bar span{display:block;height:100%;background:linear-gradient(90deg,var(--ok),var(--warn),var(--bad))}
+.reason{font-size:12px;color:#b7c9dc;margin-top:5px}
+.action{border-left:4px solid var(--accent);padding:10px 11px;background:#0b1725;border-radius:8px;margin-bottom:8px}
+.note{font-size:12px;color:#c4d4e8;background:#0b1725;border:1px dashed #3b5776;border-radius:10px;padding:9px;margin-top:9px}
+.progress{height:9px;background:#09111c;border-radius:99px;overflow:hidden;margin-top:6px}
+.progress span{display:block;height:100%;background:var(--accent)}
+.footer{text-align:center;color:#758aa6;font-size:12px;margin-top:14px}
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pill{font-size:11px;padding:5px 8px;border-radius:999px;background:#12243a;border:1px solid var(--line)}
+@media(max-width:1120px){.layout{grid-template-columns:1fr}.chat{max-height:none}}
+@media(max-width:560px){.wrap{padding:10px}.row,.kpi,.answerbar{grid-template-columns:1fr}header{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+ <div>
+   <h1>AEA Production AI</h1>
+   <div class="sub">8M Root Cause Navigator — Version 0.5.1</div>
+ </div>
+ <div class="badge">Offline Demo · logische Ausschlussdiagnose</div>
+</header>
+
+<div class="layout">
+<section class="card">
+<h2>1. Problemstart</h2>
+<div class="field">
+<label>Problem frei beschreiben</label>
+<textarea id="problem">Seit Montag haben wir Kratzer an der B-Säule. Hauptsächlich schwarze Fahrzeuge. In der Nachtschicht fast keine Fehler.</textarea>
+</div>
+<div class="row">
+ <div class="field"><label>Station / Bereich</label><input id="station" placeholder="z. B. Station 40"></div>
+ <div class="field"><label>Schicht</label><select id="shift"><option>Unbekannt</option><option>Frühschicht</option><option>Spätschicht</option><option>Nachtschicht</option><option>Alle Schichten</option></select></div>
+</div>
+<button class="primary" id="startCaseBtn" type="button">Fall starten</button>
+
+<div class="box" style="margin-top:12px">
+ <span class="title">8M-Prüffelder</span>
+ <div class="legend">
+   <span class="pill">Mensch</span><span class="pill">Maschine</span><span class="pill">Material</span>
+   <span class="pill">Methode</span><span class="pill">Messung</span><span class="pill">Milieu</span>
+   <span class="pill">Management/Änderung</span><span class="pill">Konstruktion/BOM</span>
+ </div>
+</div>
+<div class="note">Wichtig: „Mensch“ bedeutet nicht automatisch „Mitarbeiter schuld“. Es kann auch Arbeitsanweisung, Ergonomie, Qualifikation oder eine schlecht fehlertolerante Montage sein.</div><div id="appStatus" class="small muted" style="margin-top:9px">System bereit.</div>
+</section>
+
+<section class="card">
+<h2>2. Logischer Eingrenzungs-Dialog</h2>
+<div id="summary"><div class="muted">Noch kein Fall gestartet.</div></div>
+<div id="chat" class="chat"></div>
+<div id="questionArea"></div>
+</section>
+
+<section class="card">
+<h2>3. 8M-Verdachtslage</h2>
+<div id="matrix"><div class="muted">Noch keine Bewertung.</div></div>
+<div id="nextAction"></div>
+<button class="ghost" style="width:100%;margin-top:8px" onclick="showReport()">Kurzbericht</button>
+<button class="danger" style="width:100%;margin-top:8px" onclick="resetCase()">Zurücksetzen</button>
+</section>
+</div>
+
+<div class="footer">AEA Production AI v0.5.1 · 8M vergleichen → Unterschiede finden → Hypothesen hoch/runter → Gegenversuch → Ursache verifizieren</div>
+</div>
+
+<script>
+const state={
+ started:false,problem:"",turn:0,asked:[],answers:[],signals:new Set(),
+ matrix:[],lastQuestion:null,topHistory:[],evidence:[]
+};
+
+const baseMatrix=[
+ {id:"human",name:"Mensch",score:50,state:"OFFEN",reasons:[]},
+ {id:"machine",name:"Maschine",score:50,state:"OFFEN",reasons:[]},
+ {id:"material",name:"Material",score:50,state:"OFFEN",reasons:[]},
+ {id:"method",name:"Methode",score:50,state:"OFFEN",reasons:[]},
+ {id:"measurement",name:"Messung",score:40,state:"OFFEN",reasons:[]},
+ {id:"environment",name:"Milieu / Umgebung",score:35,state:"OFFEN",reasons:[]},
+ {id:"management",name:"Management / Änderung",score:45,state:"OFFEN",reasons:[]},
+ {id:"design",name:"Konstruktion / BOM",score:45,state:"OFFEN",reasons:[]}
+];
+
+const questions={
+ compareShift:{
+   text:"Da sich die Fehlerquote zwischen Schichten unterscheidet: Was ist in der fehlerarmen Schicht anders?",
+   quick:["Andere Mitarbeiter","Andere Arbeitsweise","Anderes Werkzeug","Andere Materialcharge","Andere Parameter","Nichts bekannt"]
+ },
+ human:{
+   text:"Sind in der fehlerarmen Schicht andere Mitarbeiter eingesetzt oder arbeiten dieselben Mitarbeiter dort anders?",
+   quick:["Andere Mitarbeiter","Gleiche Mitarbeiter","Unbekannt"]
+ },
+ method:{
+   text:"Unterscheidet sich die Montagefolge, Handhabung oder Arbeitsweise zwischen fehlerreicher und fehlerarmer Schicht?",
+   quick:["Ja, anders","Nein, gleich","Unbekannt"]
+ },
+ machine:{
+   text:"Wird in den betroffenen Schichten ein anderes Werkzeug, Greifer, Vorrichtung oder Anlagenprogramm verwendet?",
+   quick:["Ja","Nein","Unbekannt"]
+ },
+ material:{
+   text:"Unterscheiden sich Materialcharge, Lieferant, Behälter oder Teilenummer zwischen Gut- und Schlecht-Zeitraum?",
+   quick:["Ja","Nein","Unbekannt"]
+ },
+ design:{
+   text:"Ist der Fehler auf eine bestimmte Variante, Farbe, Seite oder Teilenummer begrenzt?",
+   quick:["Ja, Variante/Farbe","Ja, Seite/Teilenummer","Nein","Unbekannt"]
+ },
+ measurement:{
+   text:"Gibt es Mess-, Prüf- oder Qualitätsdaten, die den Unterschied zwischen Gut und Schlecht objektiv zeigen?",
+   quick:["Ja","Nein","Teilweise"]
+ },
+ environment:{
+   text:"Unterscheiden sich Temperatur, Beleuchtung, Verschmutzung, Platzverhältnisse oder andere Umgebungsbedingungen?",
+   quick:["Ja","Nein","Unbekannt"]
+ },
+ management:{
+   text:"Gab es vor Fehlerbeginn eine Änderung, Freigabe, Einarbeitung, neue Arbeitsanweisung oder Prozessumstellung?",
+   quick:["Ja","Nein","Unbekannt"]
+ },
+ swapHuman:{
+   text:"Kann testweise ein Mitarbeiter aus der fehlerarmen Schicht unter gleichen Bedingungen in der fehlerreichen Schicht arbeiten?",
+   quick:["Ja, Fehler sinkt","Ja, Fehler bleibt","Noch nicht getestet"]
+ },
+ swapTool:{
+   text:"Kann testweise das Werkzeug bzw. die Vorrichtung aus dem Gut-Zustand verwendet werden?",
+   quick:["Ja, Fehler sinkt","Ja, Fehler bleibt","Noch nicht getestet"]
+ },
+ swapMaterial:{
+   text:"Kann eine bestätigte Gut-Charge unter sonst gleichen Bedingungen eingesetzt werden?",
+   quick:["Ja, Fehler sinkt","Ja, Fehler bleibt","Noch nicht getestet"]
+ },
+ methodCheck:{
+   text:"Kann die Arbeitsweise der fehlerarmen Schicht exakt beobachtet und mit der fehlerreichen Schicht verglichen werden?",
+   quick:["Ja, deutlicher Unterschied","Ja, kein Unterschied","Noch nicht geprüft"]
+ },
+ confirm:{
+   text:"Ist die aktuelle Top-Hypothese durch Messung, reproduzierbaren Vergleich oder Gegenversuch bestätigt?",
+   quick:["Ja, bestätigt","Nein","Noch offen"]
+ }
+};
+
+function esc(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));}
+function norm(s){return (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");}
+function has(t,arr){return arr.some(x=>t.includes(norm(x)));}
+
+function resetMatrix(){
+ state.matrix=baseMatrix.map(x=>({...x,reasons:[]}));
+}
+function getM(id){return state.matrix.find(x=>x.id===id);}
+function change(id,delta,reason){
+ const m=getM(id); if(!m)return;
+ m.score=Math.max(5,Math.min(98,m.score+delta));
+ if(reason)m.reasons.push(reason);
+ if(m.score>=72)m.state="HOCH";
+ else if(m.score<=30)m.state="NIEDRIG";
+ else m.state="OFFEN";
+}
+function label(id){
+ const m=getM(id); return m?m.name:id;
+}
+function top(){
+ return [...state.matrix].sort((a,b)=>b.score-a.score)[0];
+}
+
+function parseSignals(text){
+ const t=norm(text), out=[];
+ if(has(t,["fruhschicht","frühschicht","spatschicht","spätschicht","nachtschicht"])) out.push("shift");
+ if(has(t,["fast keine","weniger fehler","nur dort","nur schicht","unterschied schicht"])) out.push("shiftDiff");
+ if(has(t,["mitarbeiter","bediener","person","werker","monteur"])) out.push("human");
+ if(has(t,["arbeitsweise","montagefolge","handhabung","montage","anders arbeiten","standardarbeit"])) out.push("method");
+ if(has(t,["werkzeug","greifer","vorrichtung","maschine","anlage","sensor","roboter"])) out.push("machine");
+ if(has(t,["charge","material","lieferant","palette","teilenummer","bauteil"])) out.push("material");
+ if(has(t,["parameter","programm","drehmoment","druck","temperatur","geschwindigkeit"])) out.push("process");
+ if(has(t,["farbe","schwarz","weiss","weiß","variante","seite","links","rechts"])) out.push("variant");
+ if(has(t,["mess","pruf","prüf","kamera","lehre","toleranz"])) out.push("measurement");
+ if(has(t,["temperatur","licht","beleuchtung","schmutz","verschmutzung","umgebung"])) out.push("environment");
+ if(has(t,["anderung","änderung","neu","wechsel","freigabe","einarbeitung","arbeitsanweisung"])) out.push("management");
+ if(has(t,["fehler sinkt","weniger fehler","fehler weg","war weg"])) out.push("positiveTest");
+ if(has(t,["fehler bleibt","keine veranderung","keine veränderung","gleich geblieben"])) out.push("negativeTest");
+ return [...new Set(out)];
+}
+
+function initialLogic(text){
+ const s=parseSignals(text);
+ s.forEach(x=>state.signals.add(x));
+ if(s.includes("shiftDiff")||s.includes("shift")){
+   change("human",12,"Schichtunterschied: Personal kann variieren");
+   change("method",14,"Schichtunterschied: Arbeitsweise kann variieren");
+   change("machine",6,"Schichtunterschied: Werkzeug/Programm kann variieren");
+   change("material",6,"Schichtunterschied: Materialbereitstellung kann variieren");
+ }
+ if(s.includes("variant")){
+   change("design",14,"Variante/Farbe/Seite im Fehlerbild erwähnt");
+   change("material",8,"Variantenbezug kann Teile-/Materialbezug haben");
+ }
+ if(s.includes("human")) change("human",12,"Mitarbeiterbezug genannt");
+ if(s.includes("method")) change("method",12,"Arbeitsweise/Montage genannt");
+ if(s.includes("machine")) change("machine",12,"Werkzeug/Anlage genannt");
+ if(s.includes("material")) change("material",12,"Material-/Chargenbezug genannt");
+ if(s.includes("measurement")) change("measurement",10,"Mess-/Prüfbezug genannt");
+ if(s.includes("environment")) change("environment",12,"Umgebungsbezug genannt");
+ if(s.includes("management")) change("management",12,"Änderungs-/Freigabebezug genannt");
+}
+
+function startCase(){
+ try{
+   const status=document.getElementById("appStatus");
+   if(status) status.textContent="Fall wird gestartet …";
+   const p=(document.getElementById("problem")?.value||"").trim();
+   if(!p){
+     if(status) status.textContent="Bitte zuerst ein Problem beschreiben.";
+     alert("Bitte Problem beschreiben.");
+     return;
+   }
+   state.started=true;
+   state.problem=p;
+   state.turn=0;
+   state.asked=[];
+   state.answers=[];
+   state.signals=new Set();
+   state.lastQuestion=null;
+   state.topHistory=[];
+   state.evidence=[];
+   resetMatrix();
+   initialLogic(p);
+
+   document.getElementById("chat").innerHTML=`
+   <div class="msg user">${esc(p)}</div>
+   <div class="msg ai"><strong>AEA:</strong> Fall gestartet. Ich vergleiche jetzt systematisch die 8M-Felder und suche nach Unterschieden zwischen Gut und Schlecht.</div>`;
+
+   renderAll();
+   askNext();
+   if(status) status.textContent="Fall aktiv – erste Eingrenzungsfrage wurde erstellt.";
+ }catch(err){
+   console.error(err);
+   const status=document.getElementById("appStatus");
+   if(status) status.textContent="Technischer Fehler: "+err.message;
+   alert("Technischer Fehler beim Start: "+err.message);
+ }
+}
+
+function chooseQuestion(){
+ const asked=new Set(state.asked);
+ const t=top();
+
+ if((state.signals.has("shift")||state.signals.has("shiftDiff")) && !asked.has("compareShift")) return ["compareShift",questions.compareShift];
+
+ if(t.id==="human" && !asked.has("human")) return ["human",questions.human];
+ if(t.id==="method" && !asked.has("method")) return ["method",questions.method];
+ if(t.id==="machine" && !asked.has("machine")) return ["machine",questions.machine];
+ if(t.id==="material" && !asked.has("material")) return ["material",questions.material];
+
+ if(!asked.has("design")) return ["design",questions.design];
+ if(!asked.has("management")) return ["management",questions.management];
+
+ const ordered=["human","method","machine","material","measurement","environment"];
+ for(const id of ordered){
+   if(!asked.has(id)) return [id,questions[id]];
+ }
+
+ // Gegenversuche für Top-Felder
+ if(t.id==="human" && !asked.has("swapHuman")) return ["swapHuman",questions.swapHuman];
+ if(t.id==="method" && !asked.has("methodCheck")) return ["methodCheck",questions.methodCheck];
+ if(t.id==="machine" && !asked.has("swapTool")) return ["swapTool",questions.swapTool];
+ if(t.id==="material" && !asked.has("swapMaterial")) return ["swapMaterial",questions.swapMaterial];
+
+ if(!asked.has("confirm")) return ["confirm",questions.confirm];
+ return null;
+}
+
+function askNext(){
+ const next=chooseQuestion();
+ if(!next){
+   document.getElementById("questionArea").innerHTML=`<div class="box"><span class="title">Eingrenzung abgeschlossen</span><div>Die wichtigsten 8M-Felder wurden geprüft. Für eine belastbare Ursache ist jetzt ein reproduzierbarer Gegenversuch oder Messnachweis erforderlich.</div></div>`;
+   return;
+ }
+ const [id,q]=next;
+ state.lastQuestion={id,...q};
+ state.asked.push(id);
+ document.getElementById("questionArea").innerHTML=`
+ <div class="question">
+  <div class="title">Nächste logische Frage</div>
+  <div>${esc(q.text)}</div>
+  <div class="quick">${q.quick.map(v=>`<button onclick="quickAnswer('${esc(v).replace(/'/g,"\\'")}')">${esc(v)}</button>`).join("")}</div>
+  <div class="answerbar">
+    <input id="answerInput" placeholder="Eigene Antwort eingeben..." onkeydown="if(event.key==='Enter')submitAnswer()">
+    <button class="secondary" onclick="submitAnswer()">Antworten</button>
+  </div>
+ </div>`;
+}
+
+function quickAnswer(v){
+ document.getElementById("answerInput").value=v;
+ submitAnswer();
+}
+
+function applyContext(questionId,answer){
+ const t=norm(answer), sig=parseSignals(answer);
+ sig.forEach(x=>state.signals.add(x));
+
+ const yes=/^(ja|ja,|ja )/.test(t);
+ const no=/^(nein|nein,|nein )/.test(t);
+
+ if(questionId==="compareShift"){
+   if(has(t,["andere mitarbeiter"])) {change("human",20,"Andere Mitarbeiter zwischen Schichten");change("machine",-6,"Werkzeug noch nicht als Unterschied genannt");change("material",-4,"Material noch nicht als Unterschied genannt");}
+   if(has(t,["andere arbeitsweise"])) {change("method",22,"Arbeitsweise unterscheidet sich zwischen Schichten");change("human",8,"Arbeitsweise kann personenbezogen sein");}
+   if(has(t,["anderes werkzeug"])) {change("machine",22,"Werkzeug unterscheidet sich zwischen Schichten");change("human",-5,"Personal nicht als primärer Unterschied genannt");}
+   if(has(t,["andere materialcharge"])) {change("material",22,"Materialcharge unterscheidet sich zwischen Schichten");}
+   if(has(t,["andere parameter"])) {change("machine",12,"Anlagen-/Programmbezug");change("method",8,"Prozessmethode/Parameter unterscheiden sich");}
+ }
+
+ if(questionId==="human"){
+   if(has(t,["andere mitarbeiter"])) {change("human",20,"Andere Mitarbeiter im Gut-/Schlechtvergleich");change("method",8,"Unterschiedliche Personen können unterschiedlich montieren");}
+   if(has(t,["gleiche mitarbeiter"])) {change("human",-18,"Gleiche Mitarbeiter in Gut- und Schlechtzustand");change("method",6,"Arbeitsbedingungen/Arbeitsweise bleiben zu prüfen");}
+ }
+
+ if(questionId==="method"){
+   if(has(t,["ja","anders"])) {change("method",22,"Montagefolge/Handhabung unterscheidet sich");change("human",8,"Methode kann personenbezogen sein");}
+   if(no||has(t,["gleich"])) change("method",-18,"Arbeitsweise laut Antwort gleich");
+ }
+
+ if(questionId==="machine"){
+   if(yes) change("machine",22,"Werkzeug/Anlage unterscheidet sich");
+   if(no) change("machine",-18,"Werkzeug/Anlage laut Antwort gleich");
+ }
+
+ if(questionId==="material"){
+   if(yes) change("material",22,"Material-/Chargenunterschied bestätigt");
+   if(no) change("material",-18,"Material/Charge laut Antwort gleich");
+ }
+
+ if(questionId==="design"){
+   if(has(t,["ja"])) {change("design",20,"Variante/Farbe/Seite begrenzt");change("material",8,"Variantenabhängigkeit kann Teilebezug haben");}
+   if(no) change("design",-16,"Nicht auf Variante/Seite begrenzt");
+ }
+
+ if(questionId==="measurement"){
+   if(yes) change("measurement",12,"Objektive Daten vorhanden");
+   if(no) change("measurement",-8,"Keine objektiven Prüfdaten verfügbar");
+ }
+
+ if(questionId==="environment"){
+   if(yes) change("environment",20,"Umgebungsunterschied bestätigt");
+   if(no) change("environment",-18,"Umgebung laut Antwort gleich");
+ }
+
+ if(questionId==="management"){
+   if(yes) change("management",20,"Änderung/Freigabe vor Fehlerbeginn");
+   if(no) change("management",-15,"Keine bekannte organisatorische/prozessuale Änderung");
+ }
+
+ if(questionId==="swapHuman"){
+   if(has(t,["fehler sinkt"])) {
+     change("human",25,"Mitarbeiterwechsel beeinflusst Fehlerquote");
+     change("method",18,"Arbeitsweise/Handhabung wahrscheinlich relevant");
+     state.evidence.push("Mitarbeiterwechsel verändert Fehlerquote");
+   } else if(has(t,["fehler bleibt"])) {
+     change("human",-22,"Mitarbeiterwechsel ohne Wirkung");
+     change("method",-10,"Arbeitsweise weniger wahrscheinlich");
+     state.evidence.push("Mitarbeiterwechsel ohne Wirkung");
+   }
+ }
+
+ if(questionId==="methodCheck"){
+   if(has(t,["deutlicher unterschied"])) {change("method",25,"Beobachteter Unterschied in Arbeitsweise");state.evidence.push("Arbeitsweise unterscheidet sich sichtbar");}
+   if(has(t,["kein unterschied"])) change("method",-20,"Beobachtung zeigt gleiche Arbeitsweise");
+ }
+
+ if(questionId==="swapTool"){
+   if(has(t,["fehler sinkt"])) {change("machine",28,"Gegenversuch mit Gut-Werkzeug positiv");state.evidence.push("Werkzeug-Gegenversuch positiv");}
+   if(has(t,["fehler bleibt"])) {change("machine",-25,"Werkzeug-Gegenversuch negativ");state.evidence.push("Werkzeug-Gegenversuch negativ");}
+ }
+
+ if(questionId==="swapMaterial"){
+   if(has(t,["fehler sinkt"])) {change("material",28,"Gut-Charge reduziert Fehler");state.evidence.push("Material-Gegenversuch positiv");}
+   if(has(t,["fehler bleibt"])) {change("material",-25,"Gut-Charge ohne Wirkung");state.evidence.push("Material-Gegenversuch negativ");}
+ }
+
+ if(questionId==="confirm"){
+   if(has(t,["bestatigt","bestätigt"])) {
+     const m=top(); m.state="BELEGT"; m.score=98;
+     state.evidence.push("Top-Hypothese als technisch bestätigt angegeben");
+   }
+ }
+
+ // generic signals from free text
+ if(sig.includes("human")) change("human",8,"Mitarbeiterbezug in Freitext");
+ if(sig.includes("method")) change("method",8,"Methodenbezug in Freitext");
+ if(sig.includes("machine")) change("machine",8,"Maschinenbezug in Freitext");
+ if(sig.includes("material")) change("material",8,"Materialbezug in Freitext");
+ if(sig.includes("measurement")) change("measurement",6,"Messbezug in Freitext");
+ if(sig.includes("environment")) change("environment",6,"Umgebungsbezug in Freitext");
+ if(sig.includes("management")) change("management",6,"Änderungsbezug in Freitext");
+
+ state.matrix.sort((a,b)=>b.score-a.score);
+}
+
+function submitAnswer(){
+ if(!state.lastQuestion)return;
+ const a=(document.getElementById("answerInput")?.value||"").trim();
+ if(!a)return;
+ const qid=state.lastQuestion.id;
+ const qtext=state.lastQuestion.text;
+
+ applyContext(qid,a);
+ state.answers.push({q:qtext,a});
+ state.turn++;
+
+ const topNow=top();
+ state.topHistory.push(topNow.id);
+
+ const chat=document.getElementById("chat");
+ chat.innerHTML += `<div class="msg user">${esc(a)}</div>`;
+ chat.innerHTML += `<div class="msg ai"><strong>AEA:</strong> Die Antwort verändert die Bewertung. Aktuell führt <strong>${esc(topNow.name)}</strong> mit ${topNow.score}/100. Ich prüfe als Nächstes den stärksten noch offenen Unterschied.</div>`;
+ chat.scrollTop=chat.scrollHeight;
+
+ state.lastQuestion=null;
+ renderAll();
+ askNext();
+}
+
+function renderAll(){
+ renderSummary();
+ renderMatrix();
+ renderNextAction();
+}
+
+function renderSummary(){
+ const spread=state.matrix.length?Math.max(...state.matrix.map(x=>x.score))-Math.min(...state.matrix.map(x=>x.score)):0;
+ const progress=Math.min(100, state.turn*11 + Math.min(30,spread/2));
+ document.getElementById("summary").innerHTML=`
+ <div class="kpi">
+   <div><span class="muted small">Dialogrunden</span><b>${state.turn}</b></div>
+   <div><span class="muted small">Top-Bereich</span><b>${esc(top()?.name||"-")}</b></div>
+   <div><span class="muted small">Trennschärfe</span><b>${Math.round(spread)}</b></div>
+ </div>
+ <div class="box">
+   <span class="title">Eingrenzungsfortschritt</span>
+   <div class="progress"><span style="width:${progress}%"></span></div>
+   <div class="small muted" style="margin-top:6px">${Math.round(progress)}% strukturiert geprüft</div>
+ </div>`;
+}
+
+function renderMatrix(){
+ document.getElementById("matrix").innerHTML=`
+ <div class="box">
+ <span class="title">8M-Ranking</span>
+ <div class="small muted" style="margin-bottom:8px">Bewertung = Prüfpriorität, kein Schuldurteil.</div>
+ ${state.matrix.map((m,i)=>{
+   const cls=m.state==="HOCH"?"up":m.state==="NIEDRIG"?"down":m.state==="BELEGT"?"proof":"open";
+   return `<div class="mrow">
+     <div class="mhead">
+       <div><strong>${i+1}. ${esc(m.name)}</strong></div>
+       <span class="state ${cls}">${m.state}</span>
+     </div>
+     <div class="bar"><span style="width:${m.score}%"></span></div>
+     <div class="reason">Prüfpriorität ${m.score}/100${m.reasons.length?" · "+esc([...new Set(m.reasons)].slice(-2).join(" · ")):""}</div>
+   </div>`;
+ }).join("")}
+ </div>`;
+}
+
+function renderNextAction(){
+ const t=top();
+ let action="Weiter vergleichen und Unterschiede zwischen Gut und Schlecht suchen.";
+ if(t?.id==="human") action="Mitarbeiter nicht vorschnell verantwortlich machen: gleiche Bedingungen herstellen und Mitarbeiter-/Arbeitsweisenvergleich durchführen.";
+ if(t?.id==="method") action="Montagefolge und Handhabung der Gut-Schicht beobachten und Schritt für Schritt mit der Fehler-Schicht vergleichen.";
+ if(t?.id==="machine") action="Werkzeug/Vorrichtung/Programm im Gegenversuch gegen den letzten Gut-Zustand prüfen.";
+ if(t?.id==="material") action="Gut-Charge gegen betroffene Charge unter gleichen Prozessbedingungen testen.";
+ if(t?.id==="design") action="Variante, Teilenummer, Seite und Änderungsstand gegeneinander abgrenzen.";
+ if(t?.id==="measurement") action="Messsystem und objektive Gut-/Schlecht-Daten absichern.";
+ if(t?.id==="management") action="Änderungskette vor Fehlerbeginn prüfen: Freigabe, Arbeitsanweisung, Training, Prozessänderung.";
+ if(t?.id==="environment") action="Umgebungsbedingungen zwischen Gut- und Schlechtzeitraum vergleichen.";
+
+ document.getElementById("nextAction").innerHTML=`
+ <div class="box">
+   <span class="title">Nächster sinnvoller Test</span>
+   <div class="action">${esc(action)}</div>
+   ${state.evidence.length?`<div class="note"><strong>Bisherige Belege:</strong><br>${state.evidence.map(x=>"• "+esc(x)).join("<br>")}</div>`:""}
+ </div>`;
+}
+
+function showReport(){
+ if(!state.started){alert("Bitte zuerst einen Fall starten.");return;}
+ const ranking=state.matrix.map((m,i)=>`${i+1}. ${m.name}: ${m.score}/100 (${m.state})`).join("\n");
+ const dialog=state.answers.map((x,i)=>`${i+1}. ${x.q}\nAntwort: ${x.a}`).join("\n\n");
+ alert(`AEA Production AI v0.5.1 – Kurzbericht
+
+PROBLEM
+${state.problem}
+
+8M-RANKING
+${ranking}
+
+DIALOG
+${dialog||"Noch keine Antworten"}
+
+BELEGE
+${state.evidence.length?state.evidence.map(x=>"• "+x).join("\n"):"• Noch kein technischer Beleg"}
+
+HINWEIS
+Hohe Priorität bedeutet nur: zuerst prüfen. Ursache erst nach Messnachweis oder reproduzierbarem Gegenversuch bestätigen.`);
+}
+
+function resetCase(){
+ Object.assign(state,{started:false,problem:"",turn:0,asked:[],answers:[],signals:new Set(),matrix:[],lastQuestion:null,topHistory:[],evidence:[]});
+ document.getElementById("problem").value="";
+ document.getElementById("station").value="";
+ document.getElementById("shift").value="Unbekannt";
+ document.getElementById("summary").innerHTML='<div class="muted">Noch kein Fall gestartet.</div>';
+ document.getElementById("chat").innerHTML="";
+ document.getElementById("questionArea").innerHTML="";
+ document.getElementById("matrix").innerHTML='<div class="muted">Noch keine Bewertung.</div>';
+ document.getElementById("nextAction").innerHTML="";
+}
+document.addEventListener("DOMContentLoaded",()=>{
+ const btn=document.getElementById("startCaseBtn");
+ if(btn){
+   btn.addEventListener("click",startCase);
+ }
+ const status=document.getElementById("appStatus");
+ if(status) status.textContent="System bereit – Fall starten ist aktiv.";
+});
+</script>
+</body>
+</html>

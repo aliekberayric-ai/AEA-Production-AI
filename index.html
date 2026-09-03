@@ -1,73 +1,13 @@
-<!doctype html>
-<html lang="de">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AEA Production AI v0.6</title>
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
-<main>
-<header>
-  <div>
-    <h1>AEA Production AI</h1>
-    <p>Adaptive 8M Diagnosis — Version 0.6</p>
-  </div>
-  <div id="jsStatus" class="status red">🔴 JavaScript nicht geladen</div>
-</header>
-
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AEA Production AI v0.7</title><link rel="stylesheet" href="style.css"></head><body><main>
+<header><div><h1>AEA Production AI</h1><p>Root Cause Navigator — Version 0.7</p></div><div id="status" class="status red">🔴 JavaScript nicht geladen</div></header>
 <div class="grid">
-<section class="card">
-<h2>1. Problemstart</h2>
-<label>Problem frei beschreiben</label>
-<textarea id="problem">Wassereintritt in den Fahrzeuginnenraum beim Wassertest.</textarea>
-
-<div class="two">
-  <div><label>Station / Bereich</label><input id="station" value="Wassertest"></div>
-  <div><label>Schicht</label>
-    <select id="shift">
-      <option>Alle Schichten</option><option>Frühschicht</option><option>Spätschicht</option>
-      <option>Nachtschicht</option><option>Unbekannt</option>
-    </select>
-  </div>
-</div>
-
-<button id="startBtn">Fall starten</button>
-<p id="clickStatus" class="hint">System wartet auf Eingabe.</p>
-
-<h3>Diagnose-Prinzip</h3>
-<div class="note">
-Kein starrer Fragenkatalog. Jede Antwort entscheidet, welcher Prüfweg als Nächstes sinnvoll ist.
-Bei „nicht möglich“ wird automatisch ein Alternativweg gewählt.
-</div>
-</section>
-
-<section class="card">
-<h2>2. Adaptive Eingrenzung</h2>
-<div id="dialog" class="dialog"><p>Noch kein Fall gestartet.</p></div>
-
-<div id="questionBox" hidden>
-  <div class="questionCard">
-    <div id="questionTitle" class="qtitle"></div>
-    <div id="questionText" class="qtext"></div>
-    <div id="options" class="options"></div>
-    <label for="answer">Freie Antwort</label>
-    <input id="answer" placeholder="Eigene Beobachtung eingeben...">
-    <button id="answerBtn">Antwort auswerten</button>
-  </div>
-</div>
-</section>
-
-<section class="card">
-<h2>3. 8M-Verdachtslage</h2>
-<div id="ranking"><p>Noch keine Bewertung.</p></div>
-<div id="decision"></div>
-
-<h3 style="margin-top:16px">Verfügbare Prüfwege</h3>
-<div id="pathStatus" class="pathList"><p class="muted">Noch keine Daten.</p></div>
-</section>
-</div>
-</main>
-<script src="app.js"></script>
-</body>
-</html>
+<section class="card"><h2>1. Fall</h2><label>Problem</label><textarea id="problem">Wassereintritt in den Fahrzeuginnenraum beim Wassertest. Undichtigkeit an der Tür.</textarea>
+<label>Bereich</label><input id="area" value="Wassertest"><label>Schicht</label><select id="shift"><option>Alle Schichten</option><option>Frühschicht</option><option>Spätschicht</option><option>Nachtschicht</option><option>Unbekannt</option></select>
+<button id="start">Fall starten</button><p id="run">Bereit.</p>
+<div class="info"><b>v0.7:</b> Soll-Prozess und tatsächliche Prozessausführung werden getrennt bewertet. Verschiedene Mitarbeiter schließen „Mensch/Methode“ nicht automatisch aus.</div></section>
+<section class="card"><h2>2. Diagnose</h2><div id="chat"><p>Noch kein Fall gestartet.</p></div>
+<div id="qa" hidden><div id="q" class="question"></div><div id="quick"></div><input id="answer" placeholder="Antwort oder Beobachtung..."><button id="send">Antwort auswerten</button></div></section>
+<section class="card"><h2>3. Aktueller Fallzustand</h2><h3>8M-Prüfpriorität</h3><div id="rank">Noch keine Bewertung.</div>
+<h3>Erkannte Fakten</h3><div id="facts" class="small">–</div><h3>Noch offen</h3><div id="open" class="small">–</div><h3>Bewertung</h3><div id="decision" class="info">–</div></section>
+</div></main><script src="app.js"></script></body></html>

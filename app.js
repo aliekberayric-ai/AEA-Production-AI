@@ -1,79 +1,24 @@
 (function(){
 "use strict";
 var $=function(id){return document.getElementById(id)};
-$("status").textContent="🟢 JavaScript aktiv";$("status").className="status green";
-
-var base={human:50,machine:50,material:50,method:50,measurement:45,environment:40,management:45,design:45};
+$("jsStatus").textContent="🟢 JavaScript aktiv";$("jsStatus").className="status green";
 var names={human:"Mensch / Ausführung",machine:"Maschine / Vorrichtung",material:"Material",method:"Methode / Prozess",measurement:"Messung / Prüfung",environment:"Milieu / Umgebung",management:"Management / Änderung",design:"Konstruktion / BOM"};
-var s={scores:{},facts:[],asked:{},answers:{},focus:"",active:false};
-function reset(){s={scores:Object.assign({},base),facts:[],asked:{},answers:{},focus:"",active:true}}
-function bump(k,n){s.scores[k]=Math.max(5,Math.min(98,s.scores[k]+n))}
-function fact(x){if(s.facts.indexOf(x)<0)s.facts.push(x)}
-function msg(x,u){$("chat").insertAdjacentHTML("beforeend",'<div class="msg '+(u?'user':'')+'">'+x+"</div>")}
-function lower(x){return (x||"").toLowerCase()}
-function analyseText(x){
- var t=lower(x);
- if(t.indexOf("tür")>=0){s.focus="Tür";fact("Fehlerbereich: Tür");bump("material",6);bump("design",6);bump("method",5)}
- if(/undicht|wasser|wassereintritt/.test(t))fact("Fehlerbild: Undichtigkeit / Wassereintritt");
- if(/alle schichten|gleicher fehler/.test(t))fact("Fehler nicht auf eine einzelne Schicht begrenzt");
- if(/unterschiedlich.*mitarbeiter|verschiedene.*mitarbeiter/.test(t)){fact("Unterschiedliche Mitarbeiter beteiligt");bump("human",-3)} // nur leicht, kein Ausschluss
- if(/gleiche montageweise|gleicher prozess|gleichen prozess/.test(t)){fact("Gleicher Soll-Prozess / gleiche Montagevorgabe");bump("method",3)}
- if(/folie|türfolie|tuerfolie/.test(t)){fact("Türfolie als möglicher Dichtpfad genannt");bump("material",12);bump("method",14)}
- if(/roller|anpress|andrück|andrueck/.test(t)){fact("Anpress-/Rollvorgang relevant");bump("method",14);bump("human",10)}
- if(/nicht.*roller|roller.*nicht|nicht richtig|nicht korrekt/.test(t)){bump("human",18);bump("method",20);fact("Hinweis auf mögliche Abweichung bei Prozessausführung")}
- if(/korrekt|nach vorgabe|vollständig.*roller|vollstaendig.*roller/.test(t)){bump("human",-10);bump("method",-7);fact("Korrekte Prozessausführung wurde angegeben")}
- if(/keine änderung|keine aenderung|nein.*änderung|nein.*aenderung/.test(t)){bump("management",-12);fact("Keine bekannte Änderung vor Fehlerbeginn")}
-}
-function sorted(){return Object.keys(s.scores).sort(function(a,b){return s.scores[b]-s.scores[a]})}
-function render(){
- $("rank").innerHTML=sorted().map(function(k,i){return '<div class="metric"><b>'+(i+1)+'. '+names[k]+'</b><span class="score">'+s.scores[k]+'/100</span><div class="bar"><i style="width:'+s.scores[k]+'%"></i></div></div>'}).join("");
- $("facts").innerHTML=s.facts.length?s.facts.map(function(f){return "• "+f}).join("<br>"):"–";
- var opens=[];
- if(!s.asked.execution)opens.push("Ist der Soll-Prozess tatsächlich korrekt ausgeführt?");
- if(!s.asked.location)opens.push("Exakte Eintrittsstelle / Dichtpfad");
- if(!s.asked.goodbad)opens.push("Unterschied Gut- gegen Schlechtfahrzeug");
- if(!s.asked.material)opens.push("Dichtung/Folie/Kleber/Materialzustand");
- $("open").innerHTML=opens.length?opens.map(function(x){return "• "+x}).join("<br>"):"Keine Standardfrage mehr offen – gezielte Nachweisprüfung erforderlich.";
- $("decision").innerHTML="<b>Wichtig:</b> Gleicher Prozess bedeutet nur gleiche Vorgabe. Erst eine beobachtete bzw. nachgewiesene korrekte Ausführung darf Mensch/Methode deutlich herunterstufen.";
-}
-var qs={
- change:{text:"Gab es vor dem ersten Auftreten eine Änderung an Bauteil, Lieferant, Montage, Werkzeug, Prozess oder Prüfprogramm?",opts:["Nein","Ja","Unbekannt"]},
- workers:{text:"Sind bei Gut- und Schlechtfahrzeugen dieselben oder unterschiedliche Mitarbeiter beteiligt?",opts:["Unterschiedliche Mitarbeiter","Dieselben Mitarbeiter","Unbekannt"]},
- process:{text:"Arbeiten die Mitarbeiter nach derselben Prozessvorgabe bzw. Montageanweisung?",opts:["Ja, gleicher Prozess","Nein, unterschiedlich","Unbekannt"]},
- execution:{text:"Entscheidend: Wurde direkt überprüft, ob der vorgeschriebene Prozess auch tatsächlich korrekt ausgeführt wird – nicht nur, ob alle dieselbe Anweisung haben?",opts:["Ja, Ausführung nachweislich korrekt","Nein, noch nicht überprüft","Abweichung beobachtet"]},
- location:{text:"Wo genau tritt das Wasser ein bzw. welcher Dichtpfad ist betroffen? Zum Beispiel Türfolie, Türdichtung, Scheibe, Kabeldurchführung oder Karosseriefuge?",opts:["Türfolie","Türdichtung","Noch nicht lokalisiert"]},
- goodbad:{text:"Was unterscheidet ein Gut- von einem Schlechtfahrzeug an dieser Stelle? Gibt es einen sicht- oder messbaren Unterschied bei Verklebung, Anpressung, Lage, Dichtung oder Geometrie?",opts:["Unterschied erkennbar","Kein Unterschied erkennbar","Noch nicht geprüft"]},
- material:{text:"Sind Folie/Dichtung/Kleber und deren Zustand bei Gut- und Schlechtfahrzeugen vergleichbar (Charge, Lage, Verschmutzung, Beschädigung, Haftung)?",opts:["Ja, vergleichbar","Nein, Unterschied vorhanden","Noch nicht geprüft"]},
- causewhy:{text:"Falls die Prozessausführung abweicht: Warum kann der vorgeschriebene Arbeitsschritt nicht zuverlässig eingehalten werden – z. B. Taktzeit, Ergonomie, Werkzeug/Roller, Schulung, Arbeitsanweisung oder Zugänglichkeit?",opts:["Taktzeit","Werkzeug/Roller","Arbeitsanweisung/Schulung","Ergonomie/Zugänglichkeit","Noch unklar"]}
-};
-function next(){
- var order=["change","workers","process","execution","location","goodbad","material"];
- for(var i=0;i<order.length;i++)if(!s.asked[order[i]])return order[i];
- if(s.answers.execution==="Abweichung beobachtet"&&!s.asked.causewhy)return "causewhy";
- return null;
-}
-function ask(id){
- if(!id){$("q").innerHTML="Die Standardabgrenzung ist beendet. Gib jetzt eine neue Beobachtung ein; sie wird weiter bewertet. Es wird keine bereits gestellte Frage wiederholt."; $("quick").innerHTML=""; return}
- s.asked[id]=true;s.current=id;$("q").textContent=qs[id].text;
- $("quick").innerHTML=qs[id].opts.map(function(o){return '<button class="quick" data-v="'+o+'">'+o+"</button>"}).join("");
- Array.prototype.forEach.call($("quick").querySelectorAll("button"),function(b){b.onclick=function(){submit(b.getAttribute("data-v"))}});
- msg("<b>AEA:</b> "+qs[id].text,false)
-}
-function submit(a){
- if(!a)return;msg(a,true);s.answers[s.current]=a;analyseText(a);
- if(s.current==="change"&&a==="Nein"){bump("management",-12);fact("Keine bekannte Änderung vor Fehlerbeginn")}
- if(s.current==="workers"&&a==="Unterschiedliche Mitarbeiter"){bump("human",-3);fact("Unterschiedliche Mitarbeiter – individueller Einzelfehler weniger naheliegend, gemeinsame Ausführungsabweichung bleibt offen")}
- if(s.current==="process"&&a==="Ja, gleicher Prozess"){fact("Gleiche Prozessvorgabe – korrekte Ausführung noch nicht bewiesen")}
- if(s.current==="execution"&&a==="Nein, noch nicht überprüft"){bump("human",8);bump("method",12);fact("Tatsächliche Prozessausführung noch ungeprüft")}
- if(s.current==="execution"&&a==="Abweichung beobachtet"){bump("human",18);bump("method",22);fact("Abweichung vom Soll-Prozess beobachtet")}
- if(s.current==="execution"&&a==="Ja, Ausführung nachweislich korrekt"){bump("human",-14);bump("method",-10);fact("Soll-Prozess nachweislich korrekt ausgeführt")}
- if(s.current==="location"&&a==="Türfolie"){bump("material",14);bump("method",16);fact("Dichtpfad auf Türfolie eingegrenzt")}
- if(s.current==="location"&&a==="Türdichtung"){bump("material",15);bump("design",10);fact("Dichtpfad auf Türdichtung eingegrenzt")}
- if(s.current==="goodbad"&&a==="Unterschied erkennbar"){bump("measurement",10);fact("Gut-/Schlechtunterschied vorhanden")}
- if(s.current==="material"&&a==="Nein, Unterschied vorhanden"){bump("material",22);fact("Material-/Zustandsunterschied festgestellt")}
- render();$("answer").value="";ask(next())
-}
-$("start").onclick=function(){reset();$("chat").innerHTML="";var p=$("problem").value.trim();if(!p)return;msg(p,true);analyseText(p);$("qa").hidden=false;$("run").textContent="✓ Fall läuft";render();ask(next())};
-$("send").onclick=function(){var a=$("answer").value.trim();if(a){analyseText(a);msg(a,true);render();$("answer").value="";ask(next())}};
-$("answer").onkeydown=function(e){if(e.key==="Enter")$("send").click()};
+var base={human:50,machine:50,material:50,method:50,measurement:45,environment:40,management:45,design:45};
+var state;
+function resetState(){state={scores:Object.assign({},base),facts:[],asked:{},completed:{},answers:{},current:null,active:false}}
+function bump(k,n){state.scores[k]=Math.max(5,Math.min(98,state.scores[k]+n))}
+function fact(x){if(state.facts.indexOf(x)<0)state.facts.push(x)}
+function msg(x,u){$("dialog").insertAdjacentHTML("beforeend",'<div class="msg '+(u?'user':'')+'">'+x+'</div>')}
+function analyse(t){t=(t||"").toLowerCase();if(/wasser|undicht/.test(t))fact("Fehlerbild: Wassereintritt / Undichtigkeit");if(/tür|tuer/.test(t)){fact("Fehlerbereich: Tür");bump("material",5);bump("method",5);bump("design",5)}if(/unterschiedlich.*mitarbeiter|verschiedene.*mitarbeiter/.test(t)){fact("Unterschiedliche Mitarbeiter beteiligt");bump("human",-2)}if(/gleicher prozess|gleiche montage|gleiche anweisung/.test(t)){fact("Gleiche Prozessvorgabe");bump("method",3)}if(/türfolie|tuerfolie|folie/.test(t)){fact("Türfolie als möglicher Dichtpfad");bump("material",14);bump("method",16)}if(/roller|anpress|andrück|andrueck/.test(t)){fact("Anpress-/Rollvorgang relevant");bump("human",10);bump("method",16)}if(/nicht korrekt|nicht richtig|nicht.*roller|roller.*nicht|nicht vollständig|nicht vollstaendig/.test(t)){fact("Mögliche Abweichung bei Prozessausführung");bump("human",18);bump("method",22)}}
+function sorted(){return Object.keys(state.scores).sort(function(a,b){return state.scores[b]-state.scores[a]})}
+function render(){$("ranking").innerHTML=sorted().map(function(k,i){return '<div class="metric"><b>'+(i+1)+'. '+names[k]+'</b><span class="score">'+state.scores[k]+'/100</span><div class="bar"><i style="width:'+state.scores[k]+'%"></i></div></div>'}).join("");$("facts").innerHTML=state.facts.length?state.facts.map(function(f){return '• '+f}).join('<br>'):'–';var p=Object.keys(state.completed);$("usedPaths").innerHTML=p.length?p.map(function(k){return '✓ '+state.completed[k]}).join('<br>'):'–';var top=sorted()[0];$("nextStep").innerHTML='<b>Aktuell höchste Prüfpriorität: '+names[top]+'</b><br>Das ist keine bestätigte Ursache. Neue Fakten müssen diese Richtung bestätigen oder schwächen.'}
+var Q={change:{title:"Änderung",text:"Gab es vor dem ersten Auftreten eine Änderung an Bauteil, Lieferant, Montage, Werkzeug, Prozess oder Prüfprogramm?",opts:["Nein","Ja","Unbekannt"]},workers:{title:"Mitarbeiter",text:"Sind unterschiedliche Mitarbeiter betroffen oder nur einzelne Personen?",opts:["Unterschiedliche Mitarbeiter","Nur einzelne Mitarbeiter","Unbekannt"]},process:{title:"Soll-Prozess",text:"Arbeiten die Mitarbeiter nach derselben Prozessvorgabe bzw. Montageanweisung?",opts:["Ja, gleicher Prozess","Nein, unterschiedlich","Unbekannt"]},execution:{title:"Ist-Ausführung",text:"Wurde direkt überprüft, ob der vorgeschriebene Prozess tatsächlich korrekt ausgeführt wird?",opts:["Ja, nachweislich korrekt","Nein, noch nicht geprüft","Abweichung beobachtet"]},localize:{title:"Fehler lokalisieren",text:"Kann die genaue Eintrittsstelle bzw. der Dichtpfad lokalisiert werden?",opts:["Ja","Teilweise","Nein"]},compare:{title:"Gut-/Schlechtvergleich",text:"Kann ein Gut- und ein Schlechtfahrzeug direkt verglichen werden?",opts:["Ja","Nein","Nur eingeschränkt"]},counter:{title:"Gegenversuch",text:"Ist ein Gegenversuch technisch und organisatorisch möglich?",opts:["Ja","Nein","Nur eingeschränkt"]},choosePath:{title:"Alternativweg",text:"Welcher Prüfweg ist aktuell realistisch verfügbar?",opts:["Prozess beobachten","Rückverfolgung nutzen","Fehler lokalisieren","Nur Daten sammeln"]},observeResult:{title:"Ergebnis Prozessbeobachtung",text:"Was wurde bei der direkten Prozessbeobachtung festgestellt?",opts:["Prozess korrekt ausgeführt","Abweichung vom Soll-Prozess","Noch nicht eindeutig"]},traceResult:{title:"Ergebnis Rückverfolgung",text:"Hat die Rückverfolgung einen Zusammenhang mit Charge, Lieferant, Schicht, Mitarbeiter, Werkzeug oder Prozessdaten gezeigt?",opts:["Ja, Zusammenhang gefunden","Nein, kein Zusammenhang","Noch unklar"]},localizeResult:{title:"Ergebnis Fehlerlokalisierung",text:"Wo wurde die Eintrittsstelle bzw. der Dichtpfad lokalisiert?",opts:["Türfolie","Türdichtung","Scheibe / Rahmen","Noch nicht eindeutig"]},collectResult:{title:"Datensammlung",text:"Welche neuen Daten liegen nach der Datensammlung vor?",opts:["Muster erkennbar","Kein Muster erkennbar","Noch zu wenig Daten"]},compareResult:{title:"Ergebnis Gut-/Schlechtvergleich",text:"Was unterscheidet Gut- und Schlechtfahrzeug an der betroffenen Stelle?",opts:["Unterschied erkennbar","Kein Unterschied sichtbar","Noch nicht eindeutig"]},counterResult:{title:"Ergebnis Gegenversuch",text:"Was war das Ergebnis des Gegenversuchs?",opts:["Fehler verschwindet","Fehler bleibt bestehen","Ergebnis nicht eindeutig"]}};
+function next(){var order=["change","workers","process","execution","localize","compare","counter"];for(var i=0;i<order.length;i++)if(!state.asked[order[i]])return order[i];if(state.answers.compare==="Ja"&&!state.asked.compareResult)return "compareResult";if(state.answers.counter==="Ja"&&!state.asked.counterResult)return "counterResult";if(!state.asked.choosePath)return "choosePath";if(state.answers.choosePath==="Prozess beobachten"&&!state.asked.observeResult)return "observeResult";if(state.answers.choosePath==="Rückverfolgung nutzen"&&!state.asked.traceResult)return "traceResult";if(state.answers.choosePath==="Fehler lokalisieren"&&!state.asked.localizeResult)return "localizeResult";if(state.answers.choosePath==="Nur Daten sammeln"&&!state.asked.collectResult)return "collectResult";return null}
+function ask(id){if(!id){$("questionBox").hidden=true;$("observationBox").hidden=false;msg("<b>AEA:</b> Keine sinnvolle Standardfrage mehr offen. Alte Fragen werden nicht wiederholt. Bitte nur neue Beobachtungen oder Prüfergebnisse ergänzen.",false);return}if(state.asked[id]){var n=next();if(n&&n!==id)ask(n);return}state.current=id;state.asked[id]=true;var q=Q[id];$("questionBox").hidden=false;$("observationBox").hidden=true;$("questionTitle").textContent=q.title;$("questionText").textContent=q.text;$("quickAnswers").innerHTML=q.opts.map(function(o){return '<button data-answer="'+o+'">'+o+'</button>'}).join('');Array.prototype.forEach.call($("quickAnswers").querySelectorAll("button"),function(b){b.onclick=function(){submit(b.getAttribute("data-answer"))}});msg("<b>AEA:</b> "+q.text,false)}
+function specific(id,a){state.answers[id]=a;if(id==="change"){state.completed.change="Änderung vor Fehlerbeginn geprüft";if(a==="Nein"){bump("management",-12);fact("Keine bekannte Änderung vor Fehlerbeginn")}}if(id==="workers"){state.completed.workers="Mitarbeiterverteilung geprüft";if(a==="Unterschiedliche Mitarbeiter")fact("Unterschiedliche Mitarbeiter – gemeinsame Ausführungsabweichung bleibt möglich")}if(id==="process"){state.completed.process="Soll-Prozess geprüft";if(a==="Ja, gleicher Prozess")fact("Gleiche Prozessvorgabe – korrekte Ausführung noch nicht bewiesen")}if(id==="execution"){state.completed.execution="Tatsächliche Prozessausführung geprüft";if(a==="Ja, nachweislich korrekt"){bump("human",-14);bump("method",-10);fact("Prozessausführung nachweislich korrekt")}if(a==="Nein, noch nicht geprüft"){bump("human",8);bump("method",12);fact("Tatsächliche Prozessausführung noch ungeprüft")}if(a==="Abweichung beobachtet"){bump("human",18);bump("method",22);fact("Abweichung vom Soll-Prozess beobachtet")}}if(id==="localize")state.completed.localize="Fehlerlokalisierung auf Machbarkeit geprüft";if(id==="compare")state.completed.compare="Gut-/Schlechtvergleich auf Machbarkeit geprüft";if(id==="counter")state.completed.counter="Gegenversuch auf Machbarkeit geprüft";if(id==="choosePath")state.completed.choosePath="Alternativweg gewählt: "+a;if(id==="observeResult"){state.completed.observeResult="Prozessbeobachtung ausgewertet";if(a==="Prozess korrekt ausgeführt"){bump("human",-12);bump("method",-8);fact("Direkte Beobachtung: Prozess korrekt ausgeführt")}if(a==="Abweichung vom Soll-Prozess"){bump("human",18);bump("method",22);fact("Direkte Beobachtung: Abweichung vom Soll-Prozess")}}if(id==="traceResult"){state.completed.traceResult="Rückverfolgung ausgewertet";if(a==="Ja, Zusammenhang gefunden"){bump("material",12);bump("management",10);fact("Rückverfolgung zeigt Zusammenhang")}}if(id==="localizeResult"){state.completed.localizeResult="Fehlerlokalisierung ausgewertet";if(a==="Türfolie"){bump("material",14);bump("method",16);fact("Dichtpfad auf Türfolie eingegrenzt")}if(a==="Türdichtung"){bump("material",16);bump("design",10);fact("Dichtpfad auf Türdichtung eingegrenzt")}}if(id==="collectResult")state.completed.collectResult="Datensammlung ausgewertet";if(id==="compareResult")state.completed.compareResult="Gut-/Schlechtvergleich ausgewertet";if(id==="counterResult")state.completed.counterResult="Gegenversuch ausgewertet"}
+function submit(a){if(!a)return;var id=state.current;msg(a,true);analyse(a);specific(id,a);$("freeAnswer").value="";render();ask(next())}
+$("startBtn").onclick=function(){resetState();var p=$("problem").value.trim();if(!p)return;state.active=true;$("runState").textContent="✓ Fall läuft";$("dialog").innerHTML="";$("observationBox").hidden=true;msg(p,true);analyse(p);render();ask(next())};
+$("sendBtn").onclick=function(){var a=$("freeAnswer").value.trim();if(a)submit(a)};$("freeAnswer").onkeydown=function(e){if(e.key==="Enter")$("sendBtn").click()};
+$("observationBtn").onclick=function(){var t=$("observation").value.trim();if(!t)return;msg(t,true);analyse(t);fact("Neue Beobachtung: "+t);$("observation").value="";render();msg("<b>AEA:</b> Beobachtung wurde bewertet. Es wird keine alte Frage erneut gestellt.",false)};
+resetState();
 })();

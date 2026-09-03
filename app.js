@@ -12,7 +12,11 @@ let S; const Q=[
 ];
 function reset(){S={i:0,a:{},facts:[],observations:[],done:{}}}
 function addFact(x){if(!S.facts.includes(x))S.facts.push(x)}
-function msg(x,u=false){$("chat").insertAdjacentHTML("beforeend",`<div class="msg ${u?"user":""}">${x}</div>`)}
+function msg(x,u=false){
+let c=$("chat"),near=c.scrollHeight-c.scrollTop-c.clientHeight<90;
+c.insertAdjacentHTML("beforeend",`<div class="msg ${u?"user":""}">${x}</div>`);
+if(near||u)requestAnimationFrame(()=>c.scrollTop=c.scrollHeight)
+}
 function parse(t){let x=t.toLowerCase();if(/türfolie|tuerfolie/.test(x))addFact("Türfolie als Fehler-/Dichtpfad genannt");if(/nicht richtig.*angedrückt|nicht.*angedrückt|nicht.*angedrueckt|roller.*nicht|nicht.*roller/.test(x)){addFact("Unzureichendes Andrücken / Rollern der Türfolie beobachtet");S.a.execResult="Abweichung vom Soll-Prozess"}if(/stempel|rückverfolg|rueckverfolg/.test(x)){addFact("Ausführung ist rückverfolgbar");S.a.trace="Ja"}if(/unterschiedliche.*mitarbeiter|verschiedene.*mitarbeiter/.test(x))addFact("Unterschiedliche Mitarbeiter beteiligt");if(/danach dicht|nacharbeit.*dicht/.test(x))S.a.proof="Ja, danach dicht"}
 function ask(){while(S.i<Q.length && S.done[Q[S.i].id])S.i++;if(S.i>=Q.length){$("qbox").hidden=true;render();return}let q=Q[S.i];$("question").textContent=q.q;$("opts").innerHTML=q.o.map(o=>`<button data-a="${o}">${o}</button>`).join("");[...$("opts").querySelectorAll("button")].forEach(b=>b.onclick=()=>submit(b.dataset.a));msg("<b>AEA:</b> "+q.q)}
 function submit(a){let q=Q[S.i];S.a[q.id]=a;S.done[q.id]=true;msg(a,true);parse(a);

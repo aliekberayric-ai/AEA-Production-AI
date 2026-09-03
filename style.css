@@ -18,3 +18,13 @@ header h1{font-size:34px}
 .secondary{background:#172b44;color:#eef6ff;border:1px solid #41688f}
 .result h2,.card h2{margin-top:0}
 @media(max-width:1100px){body{overflow:auto}.grid{grid-template-columns:1fr}.card{height:650px}}
+
+/* LinkedIn Demo v1.1 – Root Cause Status bleibt beim Scrollen sichtbar */
+.result #result{position:relative;}
+.result #result > .block.yellow:first-child{
+  position:sticky;
+  top:0;
+  z-index:30;
+  margin-top:0;
+  box-shadow:0 8px 16px rgba(0,0,0,.38);
+}
